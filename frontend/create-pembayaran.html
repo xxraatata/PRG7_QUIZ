@@ -62,7 +62,6 @@
 
     // Simpan transaksi
     const res = await createPembayaran(data);
-    console.log("Data yang dikirim: ", data);
 
     if (res.status === 200) {
       alert('Berhasil!');
