@@ -1,5 +1,7 @@
 package id.co.quiz1_prg7_038.vo;
 
+import id.co.quiz1_prg7_038.model.Layanan;
+import id.co.quiz1_prg7_038.model.Pelanggan;
 import id.co.quiz1_prg7_038.model.Pembayaran;
 
 import java.util.Date;
@@ -9,6 +11,7 @@ public class PembayaranVo {
     private String idPelanggan;
     private String namaPelanggan;
     private Integer idLayanan;
+    private String jenisLayanan;
     private Integer idSeqPembayaran;
     private Integer biayaPembayaran;
     private Date tanggal;
@@ -22,6 +25,14 @@ public class PembayaranVo {
         this.idSeqPembayaran = pembayaran.getPembayaranPK().getIdSeqPembayaran();
         this.biayaPembayaran = pembayaran.getBiayaBayar();
         this.tanggal = pembayaran.getTanggal();
+    }
+
+    public String getJenisLayanan() {
+        return jenisLayanan;
+    }
+
+    public void setJenisLayanan(String jenisLayanan) {
+        this.jenisLayanan = jenisLayanan;
     }
 
     public String getIdPelanggan() {
