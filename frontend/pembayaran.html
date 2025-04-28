@@ -40,18 +40,24 @@
               const pembayaranList = document.getElementById('pembayaranList');
               pembayaranList.innerHTML = '';
 
-              if (data.status === 200 && data.data.length > 0) {
+              if (data.status === 200 && data.data && data.data.length > 0) {
                 data.data.forEach(pembayaran => {
+                  // Tambahkan pengecekan untuk memastikan objek dan properti ada
+                  const pembayaranPK = pembayaran.pembayaranPK {};
+                  const idSeqPembayaran = pembayaranPK.idSeqPembayaran;
+                  const idPelanggan = pembayaranPK.idPelanggan;
+                  const idLayanan = pembayaranPK.idLayanan;
+
                   const row = document.createElement('tr');
                   row.innerHTML = `
-              <td>${pembayaran.pembayaranPK.idSeqPembayaran}</td>
-              <td>${pembayaran.pembayaranPK.idPelanggan}</td>
-              <td>${pembayaran.pembayaranPK.idJenisLayanan}</td>
-              <td>${formatRupiah(pembayaran.biayaBayar)}</td>
+              <td>${idSeqPembayaran}</td>
+              <td>${idPelanggan}</td>
+              <td>${idLayanan}</td>
+              <td>${formatRupiah(pembayaran.biayaPembayaran)}</td>
               <td>${formatDate(pembayaran.tanggal)}</td>
               <td class="actions">
-                <button class="update" onclick="updatePembayaran('${pembayaran.pembayaranPK.idSeqPembayaran}')">Edit</button>
-                <button class="delete" onclick="confirmDeletePembayaran('${pembayaran.pembayaranPK.idSeqPembayaran}')">Hapus</button>
+                <button class="update" onclick="updatePembayaran('${idSeqPembayaran}')">Edit</button>
+                <button class="delete" onclick="confirmDeletePembayaran('${idSeqPembayaran}')">Hapus</button>
               </td>
             `;
                   pembayaranList.appendChild(row);

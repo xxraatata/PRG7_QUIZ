@@ -44,7 +44,7 @@ async function displayPembayaran() {
         listContainer.innerHTML += `
             <div>
                 <p>ID Pembayaran: ${pembayaran.pembayaranPK.idSeqPembayaran}</p>
-                <p>Biaya Bayar: ${pembayaran.biayaBayar}</p>
+                <p>Biaya Bayar: ${pembayaran.biayaPembayaran}</p>
                 <p>Tanggal: ${pembayaran.tanggal}</p>
                 <button onclick="deletePembayaran('${pembayaran.pembayaranPK.idPelanggan}', ${pembayaran.pembayaranPK.idJenisLayanan}, ${pembayaran.pembayaranPK.idSeqPembayaran})">Delete</button>
             </div>
