@@ -53,11 +53,9 @@
   document.getElementById('pembayaranForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const data = {
-      pembayaranPK: {
-        idJenisLayanan: document.getElementById('idJenisLayanan').value,
-        idPelanggan: document.getElementById('idPelanggan').value,
-        idSeqPembayaran: parseInt(document.getElementById('idSeqPembayaran').value),
-      },
+      idJenisLayanan: document.getElementById('idJenisLayanan').value,
+      idPelanggan: document.getElementById('idPelanggan').value,
+      idSeqPembayaran: parseInt(document.getElementById('idSeqPembayaran').value),
       biayaBayar: parseInt(document.getElementById('biayaBayar').value),
       tanggal: document.getElementById('tanggal').value
     };
