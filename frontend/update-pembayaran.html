@@ -8,20 +8,20 @@
 </head>
 <body>
 <h1>Update Pembayaran</h1>
-<form id="pembayaranForm">
+
+<form id="updatePembayaranForm">
+    <label for="idSeqPembayaran">ID Pembayaran:</label>
+    <input type="number" id="idSeqPembayaran" name="idSeqPembayaran" readonly required><br><br>
 
     <label for="idPelanggan">Pilih Pelanggan:</label>
     <select id="idPelanggan" name="idPelanggan" required>
         <option value="">-- Pilih Pelanggan --</option>
-    </select>
+    </select><br><br>
 
     <label for="idJenisLayanan">Pilih Layanan:</label>
     <select id="idJenisLayanan" name="idJenisLayanan" required>
         <option value="">-- Pilih Layanan --</option>
-    </select>
-
-    <label for="idSeqPembayaran">ID Pembayaran:</label>
-    <input type="number" id="idSeqPembayaran" name="idSeqPembayaran" required><br><br>
+    </select><br><br>
 
     <label for="biayaBayar">Biaya Bayar:</label>
     <input type="number" id="biayaBayar" name="biayaBayar" required><br><br>
@@ -29,47 +29,88 @@
     <label for="tanggal">Tanggal:</label>
     <input type="date" id="tanggal" name="tanggal" required><br><br>
 
-    <button type="submit">Simpan Pembayaran</button>
+    <button type="submit">Update Pembayaran</button>
 </form>
 
-<script type="module">
-    import { getPelanggan, getLayanan, createPembayaran } from './api.js';
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const idSeqPembayaran = urlParams.get('idSeqPembayaran');
+    const idPelanggan = urlParams.get('idPelanggan');
+    const idJenisLayanan = urlParams.get('idJenisLayanan');
+    const biayaBayar = urlParams.get('biayaBayar');
+    const tanggal = urlParams.get('tanggal');
 
-    document.addEventListener('DOMContentLoaded', async () => {
-        const pelangganSelect = document.getElementById('idPelanggan');
-        const layananSelect = document.getElementById('idJenisLayanan');
+    if (!idSeqPembayaran || !idPelanggan || !idJenisLayanan) {
+        alert('ID Pembayaran, ID Pelanggan, atau ID Layanan tidak ditemukan');
+        window.location.href = 'pembayaran.html';
+    }
 
-        const pelangganRes = await getPelanggan();
-        pelangganRes.data.forEach(p => {
-            pelangganSelect.innerHTML += `<option value="${p.id}" name="idPelanggan">${p.nama}</option>`;
+    // Set nilai inputan
+    document.getElementById('idSeqPembayaran').value = idSeqPembayaran;
+
+    // Fetch pelanggan dan layanan untuk dropdown
+    fetch('http://localhost:8080/pelanggan/getAllDataPelanggan')
+        .then(response => response.json())
+        .then(data => {
+            const pelangganSelect = document.getElementById('idPelanggan');
+            data.data.forEach(pelanggan => {
+                pelangganSelect.innerHTML += `<option value="${pelanggan.id}">${pelanggan.nama}</option>`;
+            });
+            document.getElementById('idPelanggan').value = idPelanggan;
         });
 
-        const layananRes = await getLayanan();
-        layananRes.data.forEach(l => {
-            layananSelect.innerHTML += `<option value="${l.idJenisLayanan}" name="idJenisLayanan">${l.jenisLayanan}</option>`;
+    fetch('http://localhost:8080/layanan/getAllDataLayanan')
+        .then(response => response.json())
+        .then(data => {
+            const layananSelect = document.getElementById('idJenisLayanan');
+            data.data.forEach(layanan => {
+                layananSelect.innerHTML += `<option value="${layanan.idJenisLayanan}">${layanan.jenisLayanan}</option>`;
+            });
+            document.getElementById('idJenisLayanan').value = idJenisLayanan;
         });
-    });
 
-    document.getElementById('pembayaranForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const data = {
-            idJenisLayanan: document.getElementById('idJenisLayanan').value,
-            idPelanggan: document.getElementById('idPelanggan').value,
-            idSeqPembayaran: parseInt(document.getElementById('idSeqPembayaran').value),
-            biayaBayar: parseInt(document.getElementById('biayaBayar').value),
+    // Set biaya dan tanggal
+    document.getElementById('biayaBayar').value = biayaBayar;
+    document.getElementById('tanggal').value = tanggal;
+
+    // Form submit handler
+    document.getElementById('updatePembayaranForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const updatedPembayaran = {
+
+                idSeqPembayaran: document.getElementById('idSeqPembayaran').value,
+                idPelanggan: document.getElementById('idPelanggan').value,
+                idJenisLayanan: document.getElementById('idJenisLayanan').value,
+
+            biayaBayar: document.getElementById('biayaBayar').value,
             tanggal: document.getElementById('tanggal').value
         };
 
-        // Simpan transaksi
-        const res = await createPembayaran(data);
-        console.log("Data yang dikirim: ", data);
-
-        if (res.status === 200) {
-            alert('Berhasil!');
-            window.location.href = 'pembayaran.html';
-        } else {
-            alert(res.message);
-        }
+        // Kirim data update pembayaran
+        fetch('http://localhost:8080/pembayaran/updateTransaksiPembayaran', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedPembayaran)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => { throw err; });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 200) {
+                    alert('Pembayaran berhasil diperbarui');
+                    window.location.href = 'pembayaran.html';
+                } else {
+                    alert('Gagal memperbarui pembayaran: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan: ' + (error.message || JSON.stringify(error)));
+            });
     });
 </script>
 

@@ -1,4 +1,4 @@
-import { getPembayaran, getPelanggan, getLayanan } from '..//api.js';
+import { getPembayaran, getPelanggan, getLayanan } from '../api.js';
 
 let pembayaranData = [];
 let pelangganData = [];
@@ -6,15 +6,14 @@ let layananData = [];
 
 async function loadPembayaranData() {
     try {
-        const [pembayaranResponse,
-            pelangganResponse,
-            layananResponse] = await Promise.all([
-
+        // Ambil data pembayaran, pelanggan, dan layanan sekaligus
+        const [pembayaranResponse, pelangganResponse, layananResponse] = await Promise.all([
             getPembayaran(),
             getPelanggan(),
             getLayanan()
         ]);
 
+        // Simpan data yang diterima ke variabel
         pembayaranData = pembayaranResponse.data || [];
         pelangganData = pelangganResponse.data || [];
         layananData = layananResponse.data || [];
@@ -42,8 +41,10 @@ function renderTable(data) {
         const biaya = pembayaran.biayaPembayaran || 0;
         const tanggal = pembayaran.tanggal || '';
 
-        const namaPelanggan = pembayaran.namaPelanggan || 'Tidak Diketahui';
-        const jenisLayanan = pembayaran.jenisLayanan || 'Tidak Diketahui';
+        // Cari nama pelanggan berdasarkan idPelanggan
+        const namaPelanggan = pelangganData.find(p => p.id === idPelanggan)?.nama || 'Tidak Diketahui';
+        // Cari jenis layanan berdasarkan idLayanan
+        const jenisLayanan = layananData.find(l => l.idJenisLayanan === idLayanan)?.jenisLayanan || 'Tidak Diketahui';
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -53,11 +54,35 @@ function renderTable(data) {
             <td>${formatRupiah(biaya)}</td>
             <td>${formatDate(tanggal)}</td>
             <td class="actions">
-                <button class="update" onclick="updatePembayaran('${idSeqPembayaran}')">Edit</button>
+                <button class="update">Edit</button>
                 <button class="delete">Hapus</button>
             </td>
         `;
         pembayaranList.appendChild(row);
+    });
+
+    // Menambahkan event listener untuk tombol Edit
+    const updateButtons = document.querySelectorAll('.update');
+    updateButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const idSeqPembayaran = row.querySelector('.idSeqPembayaran').getAttribute('data-idSeqPembayaran');
+            const idPelanggan = row.querySelector('.idPelanggan').getAttribute('data-idPelanggan');
+            const idLayanan = row.querySelector('.idLayanan').getAttribute('data-idLayanan');
+            const biaya = row.children[3].innerText.replace(/\D/g, ''); // Ambil biaya dari kolom (hapus Rp dan titik)
+            const tanggal = row.children[4].innerText; // Tanggal
+
+            // Convert tanggal ke format yyyy-MM-dd
+            const dateParts = tanggal.split(' ');
+            const months = {
+                Januari: '01', Februari: '02', Maret: '03', April: '04', Mei: '05', Juni: '06',
+                Juli: '07', Agustus: '08', September: '09', Oktober: '10', November: '11', Desember: '12'
+            };
+            const tanggalFormatted = `${dateParts[2]}-${months[dateParts[1]]}-${dateParts[0]}`;
+
+            updatePembayaran(idSeqPembayaran, idPelanggan, idLayanan, biaya, tanggalFormatted);
+        });
+
     });
 
     // Menambahkan event listener untuk tombol hapus
@@ -83,9 +108,10 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('id-ID', options);
 }
 
-function updatePembayaran(id) {
-    window.location.href = `update-pembayaran.html?id=${id}`;
+function updatePembayaran(idSeqPembayaran, idPelanggan, idJenisLayanan, biayaBayar, tanggal) {
+    window.location.href = `update-pembayaran.html?idSeqPembayaran=${idSeqPembayaran}&idPelanggan=${idPelanggan}&idJenisLayanan=${idJenisLayanan}&biayaBayar=${biayaBayar}&tanggal=${tanggal}`;
 }
+
 
 function confirmDeletePembayaran(idSeqPembayaran, idPelanggan, idLayanan) {
     if (confirm('Apakah kamu yakin ingin menghapus transaksi pembayaran ini?')) {

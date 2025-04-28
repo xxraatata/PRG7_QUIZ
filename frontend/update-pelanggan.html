@@ -3,100 +3,78 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Update Pembayaran</title>
+  <title>Update Pelanggan</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<h1>Update Pembayaran</h1>
-<form id="pembayaranForm">
+<h1>Update Pelanggan</h1>
 
-  <label for="idPelanggan">Pilih Pelanggan:</label>
-  <select id="idPelanggan" name="idPelanggan" required>
-    <option value="">-- Pilih Pelanggan --</option>
-  </select>
+<form id="updatePelangganForm">
+  <label for="idPelanggan">ID Pelanggan:</label>
+  <input type="text" id="idPelanggan" name="idPelanggan" disabled required><br><br>
 
-  <label for="idJenisLayanan">Pilih Layanan:</label>
-  <select id="idJenisLayanan" name="idJenisLayanan" required>
-    <option value="">-- Pilih Layanan --</option>
-  </select>
+  <label for="namaPelanggan">Nama Pelanggan:</label>
+  <input type="text" id="namaPelanggan" name="namaPelanggan" required><br><br>
 
-  <label for="idSeqPembayaran">ID Pembayaran:</label>
-  <input type="number" id="idSeqPembayaran" name="idSeqPembayaran" readonly required><br><br>
+  <label for="nomorHP">Nomor HP:</label>
+  <input type="text" id="nomorHP" name="nomorHP" required><br><br>
 
-  <label for="biayaBayar">Biaya Bayar:</label>
-  <input type="number" id="biayaBayar" name="biayaBayar" required><br><br>
-
-  <label for="tanggal">Tanggal:</label>
-  <input type="date" id="tanggal" name="tanggal" required><br><br>
-
-  <button type="submit">Update Pembayaran</button>
+  <button type="submit">Update Pelanggan</button>
 </form>
 
-<script type="module">
-  import { getPelanggan, getLayanan, getPembayaranById, updatePembayaran } from './api.js';
+<script>
+  // Ambil ID Pelanggan dari URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const idPelanggan = urlParams.get('id');
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const idSeqPembayaran = urlParams.get('id');
+  // Fetch data pelanggan untuk update
+  fetch(`http://localhost:8080/pelanggan/getAllDataPelanggan`)
+          .then(response => response.json())
+          .then(data => {
+            const pelanggan = data.data.find(p => p.id === idPelanggan);
+            if (pelanggan) {
+              document.getElementById('idPelanggan').value = pelanggan.id;
+              document.getElementById('namaPelanggan').value = pelanggan.nama;
+              document.getElementById('nomorHP').value = pelanggan.noHp;
+            }
+          })
+          .catch(error => alert('Terjadi kesalahan saat mengambil data pelanggan: ' + error));
 
-    if (!idSeqPembayaran) {
-      alert('ID Pembayaran tidak ditemukan');
-      window.location.href = 'pembayaran.html';
-      return;
-    }
+  // Form submit handler
+  document.getElementById('updatePelangganForm').addEventListener('submit', function(event) {
+    event.preventDefault();
 
-    const pelangganSelect = document.getElementById('idPelanggan');
-    const layananSelect = document.getElementById('idJenisLayanan');
-
-    const pelangganRes = await getPelanggan();
-    pelangganRes.data.forEach(p => {
-      pelangganSelect.innerHTML += `<option value="${p.id}" name="idPelanggan">${p.nama}</option>`;
-    });
-
-    const layananRes = await getLayanan();
-    layananRes.data.forEach(l => {
-      layananSelect.innerHTML += `<option value="${l.idJenisLayanan}" name="idJenisLayanan">${l.jenisLayanan}</option>`;
-    });
-
-    const pembayaranRes = await getPembayaranById(idSeqPembayaran);
-    if (pembayaranRes.status === 200) {
-      const pembayaran = pembayaranRes.data;
-
-      document.getElementById('idSeqPembayaran').value = pembayaran.pembayaranPK.idSeqPembayaran;
-      document.getElementById('idPelanggan').value = pembayaran.pembayaranPK.idPelanggan;
-      document.getElementById('idJenisLayanan').value = pembayaran.pembayaranPK.idJenisLayanan;
-      document.getElementById('biayaBayar').value = pembayaran.biayaBayar;
-      document.getElementById('tanggal').value = pembayaran.tanggal.split('T')[0]; // Format tanggal untuk input date
-    } else {
-      alert('Gagal memuat data pembayaran: ' + pembayaranRes.message);
-      window.location.href = 'pembayaran.html';
-    }
-  });
-
-  document.getElementById('pembayaranForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const data = {
-      pembayaranPK: {
-        idJenisLayanan: document.getElementById('idJenisLayanan').value,
-        idPelanggan: document.getElementById('idPelanggan').value,
-        idSeqPembayaran: parseInt(document.getElementById('idSeqPembayaran').value)
-      },
-      biayaBayar: parseInt(document.getElementById('biayaBayar').value),
-      tanggal: document.getElementById('tanggal').value
+    const updatedPelanggan = {
+      id: document.getElementById('idPelanggan').value,
+      nama: document.getElementById('namaPelanggan').value,
+      noHp: document.getElementById('nomorHP').value
     };
 
-    // Update transaksi
-    const res = await updatePembayaran(data);
-    console.log("Data yang dikirim: ", data);
-
-    if (res.status === 200) {
-      alert('Data pembayaran berhasil diupdate!');
-      window.location.href = 'pembayaran.html';
-    } else {
-      alert('Gagal update: ' + res.message);
-    }
+    fetch('http://localhost:8080/pelanggan/updatePelanggan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedPelanggan)
+    })
+            .then(response => {
+              if (!response.ok) {
+                return response.json().then(err => { throw err; });
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.status === 200) {
+                alert('Pelanggan berhasil diperbarui');
+                window.location.href = 'pelanggan.html';
+              } else {
+                alert('Gagal memperbarui pelanggan: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan: ' + (error.message || JSON.stringify(error)));
+            });
   });
 </script>
+
 </body>
 </html>

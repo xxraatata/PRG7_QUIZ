@@ -20,6 +20,23 @@ export async function getPembayaran() {
     return await response.json();
 }
 
+// Fungsi untuk mengambil id pembayaran buat update
+export async function getPembayaranById(id) {
+    try {
+        const response = await fetch(`http://localhost:8080/pembayaran/getPembayaranById?id=${id}`);
+        const data = await response.json();
+
+        if (response.ok) {
+            return { status: 200, data: data };
+        } else {
+            return { status: 400, message: data.message || 'Gagal mengambil data' };
+        }
+    } catch (error) {
+        console.error('Error fetching pembayaran by ID:', error);
+        return { status: 500, message: 'Terjadi kesalahan saat mengambil data' };
+    }
+}
+
 // Fungsi untuk mengirim data pelanggan baru
 export async function createPelanggan(data) {
     const response = await fetch(`${API_URL}/pelanggan/savePelanggan`, {

@@ -83,18 +83,18 @@ public class PembayaranServiceImpl implements PembayaranService {
             pembayaranPK.setIdJenisLayanan(pembayaranVoForm.getIdJenisLayanan());
             pembayaranPK.setIdSeqPembayaran(pembayaranVoForm.getIdSeqPembayaran());
 
-            Pembayaran pembayaran = new Pembayaran();
-            pembayaran.setPembayaranPK(pembayaranPK);
-            pembayaran.setBiayaBayar(pembayaranVoForm.getBiayaBayar());
-            pembayaran.setTanggal(pembayaranVoForm.getTanggal());
+            // CARI DULU, BUKAN LANGSUNG BUAT OBJEK BARU
+            Pembayaran existingPembayaran = pembayaranRepository.findById(pembayaranPK)
+                    .orElseThrow(() -> new RuntimeException("Data pembayaran tidak ditemukan"));
 
-            Pembayaran updatedTransaksiPembayaran = pembayaranRepository.save(pembayaran);
-            if (updatedTransaksiPembayaran != null) {
-                return new DtoResponse(200, updatedTransaksiPembayaran, mUpdateSuccess);
-            } else {
-                return new DtoResponse(404, null, mNotFound);
-            }
-        } catch (Exception e){
+            // UPDATE FIELD yang boleh diedit
+            existingPembayaran.setBiayaBayar(pembayaranVoForm.getBiayaBayar());
+            existingPembayaran.setTanggal(pembayaranVoForm.getTanggal());
+
+            Pembayaran updatedPembayaran = pembayaranRepository.save(existingPembayaran);
+
+            return new DtoResponse(200, updatedPembayaran, mUpdateSuccess);
+        } catch (Exception e) {
             return new DtoResponse(500, null, mUpdateFailed);
         }
     }
