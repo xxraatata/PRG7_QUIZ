@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Layanan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Create Layanan</h1>
+<form id="layananForm">
+  <label for="jenisLayanan">Jenis Layanan:</label>
+  <input type="text" id="jenisLayanan" name="jenisLayanan" required><br><br>
+
+  <label for="biaya">Biaya:</label>
+  <input type="number" id="biaya" name="biaya" required><br><br>
+
+  <button type="submit">Simpan Layanan</button>
+</form>
+
+<script>
+  document.getElementById('layananForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const jenisLayanan = document.getElementById('jenisLayanan').value;
+    const biaya = document.getElementById('biaya').value;
+
+    const data = {
+      jenisLayanan: jenisLayanan,
+      biaya: biaya
+    };
+
+    fetch('http://localhost:8080/layanan/saveLayanan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+            .then(response => response.json())
+            .then(data => {
+              alert('Layanan berhasil ditambahkan!');
+              window.location.href = 'index.html';  // Redirect kembali ke halaman utama
+            })
+            .catch(error => {
+              alert('Terjadi kesalahan: ' + error);
+            });
+  });
+</script>
+</body>
+</html>

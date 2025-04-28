@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pembayaran Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="section">
+  <div class="container">
+    <h1>Transaksi Pembayaran</h1>
+    <div>
+      <input type="text" id="searchPembayaran" class="search-box" placeholder="Cari transaksi...">
+      <button onclick="window.location.href='create-pembayaran.html'">Tambah Pembayaran</button>
+    </div>
+  </div>
+
+  <table id="pembayaranTable">
+    <thead>
+    <tr>
+      <th>ID Pembayaran</th>
+      <th>ID Pelanggan</th>
+      <th>ID Layanan</th>
+      <th>Biaya</th>
+      <th>Tanggal</th>
+      <th class="actions">Aksi</th>
+    </tr>
+    </thead>
+    <tbody id="pembayaranList"></tbody>
+  </table>
+</div>
+
+<script>
+  // Menampilkan daftar pembayaran dalam tabel
+  function loadPembayaranData() {
+    fetch('http://localhost:8080/pembayaran/getTransaksiPembayaran')
+            .then(response => response.json())
+            .then(data => {
+              const pembayaranList = document.getElementById('pembayaranList');
+              pembayaranList.innerHTML = '';
+
+              if (data.status === 200 && data.data.length > 0) {
+                data.data.forEach(pembayaran => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+              <td>${pembayaran.pembayaranPK.idSeqPembayaran}</td>
+              <td>${pembayaran.pembayaranPK.idPelanggan}</td>
+              <td>${pembayaran.pembayaranPK.idJenisLayanan}</td>
+              <td>${formatRupiah(pembayaran.biayaBayar)}</td>
+              <td>${formatDate(pembayaran.tanggal)}</td>
+              <td class="actions">
+                <button class="update" onclick="updatePembayaran('${pembayaran.pembayaranPK.idSeqPembayaran}')">Edit</button>
+                <button class="delete" onclick="confirmDeletePembayaran('${pembayaran.pembayaranPK.idSeqPembayaran}')">Hapus</button>
+              </td>
+            `;
+                  pembayaranList.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="6" style="text-align: center;">Tidak ada data transaksi pembayaran</td>`;
+                pembayaranList.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan saat mengambil data pembayaran');
+            });
+  }
+
+  // Format mata uang Rupiah
+  function formatRupiah(angka) {
+    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Format tanggal
+  function formatDate(dateString) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return new Date(dateString).toLocaleDateString('id-ID', options);
+  }
+
+  // Pencarian
+  document.getElementById('searchPembayaran').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#pembayaranList tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  });
+
+  // Update pembayaran
+  function updatePembayaran(id) {
+    window.location.href = `update-pembayaran.html?id=${id}`;
+  }
+
+  // Konfirmasi delete
+  function confirmDeletePembayaran(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus transaksi pembayaran ini?')) {
+      deletePembayaran(id);
+    }
+  }
+
+  // Hapus pembayaran
+  function deletePembayaran(id) {
+    fetch('http://localhost:8080/pembayaran/deleteTransaksiPembayaran', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idSeqPembayaran: id })
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 200) {
+                alert('Transaksi pembayaran berhasil dihapus');
+                loadPembayaranData(); // Reload data
+              } else {
+                alert('Gagal menghapus transaksi pembayaran: ' + (data.message || ''));
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan: ' + error);
+            });
+  }
+
+  // Load data saat halaman dibuka
+  loadPembayaranData();
+</script>
+</body>
+</html>

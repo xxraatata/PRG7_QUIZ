@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Pelanggan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Update Pelanggan</h1>
+
+<form id="updatePelangganForm">
+  <label for="idPelanggan">ID Pelanggan:</label>
+  <input type="text" id="idPelanggan" name="idPelanggan" disabled required><br><br>
+
+  <label for="namaPelanggan">Nama Pelanggan:</label>
+  <input type="text" id="namaPelanggan" name="namaPelanggan" required><br><br>
+
+  <label for="nomorHP">Nomor HP:</label>
+  <input type="text" id="nomorHP" name="nomorHP" required><br><br>
+
+  <button type="submit">Update Pelanggan</button>
+</form>
+
+<script>
+  // Ambil ID Pelanggan dari URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const idPelanggan = urlParams.get('id');
+
+  // Fetch data pelanggan untuk update
+  fetch(`http://localhost:8080/pelanggan/getAllDataPelanggan`)
+          .then(response => response.json())
+          .then(data => {
+            const pelanggan = data.data.find(p => p.id === idPelanggan);
+            if (pelanggan) {
+              document.getElementById('idPelanggan').value = pelanggan.id;
+              document.getElementById('namaPelanggan').value = pelanggan.nama;
+              document.getElementById('nomorHP').value = pelanggan.noHp;
+            }
+          })
+          .catch(error => alert('Terjadi kesalahan saat mengambil data pelanggan: ' + error));
+
+  // Form submit handler
+  document.getElementById('updatePelangganForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const updatedPelanggan = {
+      id: document.getElementById('idPelanggan').value,
+      nama: document.getElementById('namaPelanggan').value,
+      noHp: document.getElementById('nomorHP').value
+    };
+
+    fetch('http://localhost:8080/pelanggan/updatePelanggan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedPelanggan)
+    })
+            .then(response => {
+              if (!response.ok) {
+                return response.json().then(err => { throw err; });
+              }
+              return response.json();
+            })
+            .then(data => {
+              if (data.status === 200) {
+                alert('Pelanggan berhasil diperbarui');
+                window.location.href = 'pelanggan.html';
+              } else {
+                alert('Gagal memperbarui pelanggan: ' + data.message);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan: ' + (error.message || JSON.stringify(error)));
+            });
+  });
+</script>
+
+</body>
+</html>

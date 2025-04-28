@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Pelanggan</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Create Pelanggan</h1>
+<form id="pelangganForm">
+  <label for="idPelanggan">ID Pelanggan:</label>
+  <input type="text" id="idPelanggan" name="idPelanggan" required><br><br>
+
+  <label for="namaPelanggan">Nama Pelanggan:</label>
+  <input type="text" id="namaPelanggan" name="namaPelanggan" required><br><br>
+
+  <label for="nomorHP">Nomor HP:</label>
+  <input type="text" id="nomorHP" name="nomorHP" required><br><br>
+
+  <button type="submit">Simpan Pelanggan</button>
+</form>
+
+<script>
+  document.getElementById('pelangganForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const idPelanggan = document.getElementById('idPelanggan').value;
+    const namaPelanggan = document.getElementById('namaPelanggan').value;
+    const nomorHP = document.getElementById('nomorHP').value;
+
+    const data = {
+      id: idPelanggan,
+      nama: namaPelanggan,
+      noHp: nomorHP
+    };
+
+    fetch('http://localhost:8080/pelanggan/savePelanggan', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
+    })
+            .then(response => response.json())
+            .then(data => {
+              alert('Pelanggan berhasil ditambahkan!');
+              window.location.href = 'index.html';  // Redirect kembali ke halaman utama
+            })
+            .catch(error => {
+              alert('Terjadi kesalahan: ' + error);
+            });
+  });
+</script>
+</body>
+</html>

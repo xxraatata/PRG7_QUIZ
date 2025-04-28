@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pelanggan Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="section">
+  <div class="container">
+    <h1>Master Pelanggan</h1>
+    <div>
+      <input type="text" id="searchPelanggan" class="search-box" placeholder="Cari pelanggan...">
+      <button onclick="window.location.href='create-pelanggan.html'">Tambah Pelanggan</button>
+    </div>
+  </div>
+
+  <table id="pelangganTable">
+    <thead>
+    <tr>
+      <th>ID Pelanggan</th>
+      <th>Nama</th>
+      <th>Nomor HP</th>
+      <th class="actions">Aksi</th>
+    </tr>
+    </thead>
+    <tbody id="pelangganList"></tbody>
+  </table>
+</div>
+
+<script>
+  // Menampilkan daftar pelanggan dalam tabel
+  function loadPelangganData() {
+    fetch('http://localhost:8080/pelanggan/getAllDataPelanggan')
+            .then(response => response.json())
+            .then(data => {
+              const pelangganList = document.getElementById('pelangganList');
+              pelangganList.innerHTML = '';
+
+              if (data.status === 200 && data.data.length > 0) {
+                data.data.forEach(pelanggan => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+              <td>${pelanggan.id}</td>
+              <td>${pelanggan.nama}</td>
+              <td>${pelanggan.noHp}</td>
+              <td class="actions">
+                <button class="update" onclick="updatePelanggan('${pelanggan.id}')">Edit</button>
+                <button class="delete" onclick="confirmDeletePelanggan('${pelanggan.id}')">Hapus</button>
+              </td>
+            `;
+                  pelangganList.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4" style="text-align: center;">Tidak ada data pelanggan</td>`;
+                pelangganList.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan saat mengambil data pelanggan');
+            });
+  }
+
+  // Pencarian
+  document.getElementById('searchPelanggan').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#pelangganList tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  });
+
+  // Update pelanggan
+  function updatePelanggan(id) {
+    window.location.href = `update-pelanggan.html?id=${id}`;
+  }
+
+  // Konfirmasi delete
+  function confirmDeletePelanggan(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')) {
+      deletePelanggan(id);
+    }
+  }
+
+  // Hapus pelanggan
+  function deletePelanggan(id) {
+    fetch('http://localhost:8080/pelanggan/deletePelanggan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 200) {
+                alert('Pelanggan berhasil dihapus');
+                loadPelangganData(); // Reload data
+              } else {
+                alert('Gagal menghapus pelanggan: ' + (data.message || ''));
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan: ' + error);
+            });
+  }
+
+  // Load data saat halaman dibuka
+  loadPelangganData();
+</script>
+</body>
+</html>

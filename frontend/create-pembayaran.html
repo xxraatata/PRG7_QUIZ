@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Pembayaran</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Create Pembayaran</h1>
+<form id="pembayaranForm">
+
+  <label for="idPelanggan">Pilih Pelanggan:</label>
+  <select id="idPelanggan" name="idPelanggan" required>
+    <option value="">-- Pilih Pelanggan --</option>
+  </select>
+
+  <label for="idJenisLayanan">Pilih Layanan:</label>
+  <select id="idJenisLayanan" name="idJenisLayanan" required>
+    <option value="">-- Pilih Layanan --</option>
+  </select>
+
+  <label for="idSeqPembayaran">ID Pembayaran:</label>
+  <input type="number" id="idSeqPembayaran" name="idSeqPembayaran" required><br><br>
+
+  <label for="biayaBayar">Biaya Bayar:</label>
+  <input type="number" id="biayaBayar" name="biayaBayar" required><br><br>
+
+  <label for="tanggal">Tanggal:</label>
+  <input type="date" id="tanggal" name="tanggal" required><br><br>
+
+  <button type="submit">Simpan Pembayaran</button>
+</form>
+
+<script type="module">
+  import { getPelanggan, getLayanan, createPembayaran } from './api.js';
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    const pelangganSelect = document.getElementById('idPelanggan');
+    const layananSelect = document.getElementById('idJenisLayanan');
+
+    const pelangganRes = await getPelanggan();
+    pelangganRes.data.forEach(p => {
+      pelangganSelect.innerHTML += `<option value="${p.id}" name="idPelanggan">${p.nama}</option>`;
+    });
+
+    const layananRes = await getLayanan();
+    layananRes.data.forEach(l => {
+      layananSelect.innerHTML += `<option value="${l.idJenisLayanan}" name="idJenisLayanan">${l.jenisLayanan}</option>`;
+    });
+  });
+
+  document.getElementById('pembayaranForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      pembayaranPK: {
+        idJenisLayanan: document.getElementById('idJenisLayanan').value,
+        idPelanggan: document.getElementById('idPelanggan').value,
+        idSeqPembayaran: parseInt(document.getElementById('idSeqPembayaran').value),
+      },
+      biayaBayar: parseInt(document.getElementById('biayaBayar').value),
+      tanggal: document.getElementById('tanggal').value
+    };
+
+
+    // Simpan transaksi
+    const res = await createPembayaran(data);
+    console.log("Data yang dikirim: ", data);
+
+    if (res.status === 200) {
+      alert('Berhasil!');
+      window.location.href = 'pembayaran.html';
+    } else {
+      alert(res.message);
+    }
+  });
+</script>
+
+</body>
+</html>

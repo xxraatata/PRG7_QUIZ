@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layanan Management</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="section">
+  <div class="container">
+    <h1>Master Layanan</h1>
+    <div>
+      <input type="text" id="searchLayanan" class="search-box" placeholder="Cari layanan...">
+      <button onclick="window.location.href='create-layanan.html'">Tambah Layanan</button>
+    </div>
+  </div>
+
+  <table id="layananTable">
+    <thead>
+    <tr>
+      <th>ID Layanan</th>
+      <th>Jenis Layanan</th>
+      <th>Biaya</th>
+      <th class="actions">Aksi</th>
+    </tr>
+    </thead>
+    <tbody id="layananList"></tbody>
+  </table>
+</div>
+
+<script>
+  // Menampilkan daftar layanan dalam tabel
+  function loadLayananData() {
+    fetch('http://localhost:8080/layanan/getAllDataLayanan')
+            .then(response => response.json())
+            .then(data => {
+              const layananList = document.getElementById('layananList');
+              layananList.innerHTML = '';
+
+              if (data.status === 200 && data.data.length > 0) {
+                data.data.forEach(layanan => {
+                  const row = document.createElement('tr');
+                  row.innerHTML = `
+              <td>${layanan.idJenisLayanan}</td>
+              <td>${layanan.jenisLayanan}</td>
+              <td>${formatRupiah(layanan.biaya)}</td>
+              <td class="actions">
+                <button class="update" onclick="updateLayanan('${layanan.idJenisLayanan}')">Edit</button>
+                <button class="delete" onclick="confirmDeleteLayanan('${layanan.idJenisLayanan}')">Hapus</button>
+              </td>
+            `;
+                  layananList.appendChild(row);
+                });
+              } else {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td colspan="4" style="text-align: center;">Tidak ada data layanan</td>`;
+                layananList.appendChild(row);
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan saat mengambil data layanan');
+            });
+  }
+
+  // Format mata uang Rupiah
+  function formatRupiah(angka) {
+    return 'Rp ' + angka.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+
+  // Pencarian
+  document.getElementById('searchLayanan').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#layananList tr');
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+  });
+
+  // Update layanan
+  function updateLayanan(id) {
+    window.location.href = `update-layanan.html?id=${id}`;
+  }
+
+  // Konfirmasi delete
+  function confirmDeleteLayanan(id) {
+    if (confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
+      deleteLayanan(id);
+    }
+  }
+
+  // Hapus layanan
+  function deleteLayanan(id) {
+    fetch('http://localhost:8080/layanan/deleteLayanan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idJenisLayanan: id })
+    })
+            .then(response => response.json())
+            .then(data => {
+              if (data.status === 200) {
+                alert('Layanan berhasil dihapus');
+                loadLayananData();
+              } else {
+                alert('Gagal menghapus layanan: ' + (data.message || ''));
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Terjadi kesalahan: ' + error);
+            });
+
+  }
+
+  // Load data saat halaman dibuka
+  loadLayananData();
+</script>
+</body>
+</html>
