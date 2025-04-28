@@ -47,17 +47,29 @@ function renderTable(data) {
 
         const row = document.createElement('tr');
         row.innerHTML = `
-   <td>${idSeqPembayaran}</td>
-   <td>${namaPelanggan}</td>
-   <td>${jenisLayanan}</td>
-   <td>${formatRupiah(biaya)}</td>
-   <td>${formatDate(tanggal)}</td>
-   <td class="actions">
-     <button class="update" onclick="updatePembayaran('${idSeqPembayaran}')">Edit</button>
-     <button class="delete" onclick="(function() { confirmDeletePembayaran('${idSeqPembayaran}', '${idPelanggan}', '${idLayanan}'); })()">Hapus</button>
-   </td>
- `;
+            <td class="idSeqPembayaran" data-idSeqPembayaran="${idSeqPembayaran}">${idSeqPembayaran}</td>
+            <td class="idPelanggan" data-idPelanggan="${idPelanggan}">${namaPelanggan}</td>
+            <td class="idLayanan" data-idLayanan="${idLayanan}">${jenisLayanan}</td>
+            <td>${formatRupiah(biaya)}</td>
+            <td>${formatDate(tanggal)}</td>
+            <td class="actions">
+                <button class="update" onclick="updatePembayaran('${idSeqPembayaran}')">Edit</button>
+                <button class="delete">Hapus</button>
+            </td>
+        `;
         pembayaranList.appendChild(row);
+    });
+
+    // Menambahkan event listener untuk tombol hapus
+    const deleteButtons = document.querySelectorAll('.delete');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const idSeqPembayaran = row.querySelector('.idSeqPembayaran').getAttribute('data-idSeqPembayaran');
+            const idPelanggan = row.querySelector('.idPelanggan').getAttribute('data-idPelanggan');
+            const idLayanan = row.querySelector('.idLayanan').getAttribute('data-idLayanan');
+            confirmDeletePembayaran(idSeqPembayaran, idPelanggan, idLayanan);
+        });
     });
 }
 
@@ -81,7 +93,7 @@ function confirmDeletePembayaran(idSeqPembayaran, idPelanggan, idLayanan) {
     }
 }
 
-async function deletePembayaran(idSeqPembayaran, idPelanggan, idLayanan) {
+async function deletePembayaran(idSeqPembayaran, idPelanggan, idJenisLayanan) {
     try {
         const response = await fetch('http://localhost:8080/pembayaran/deleteTransaksiPembayaran', {
             method: 'POST',
@@ -89,11 +101,12 @@ async function deletePembayaran(idSeqPembayaran, idPelanggan, idLayanan) {
             body: JSON.stringify({
                 idSeqPembayaran: idSeqPembayaran,
                 idPelanggan: idPelanggan,
-                idLayanan: idLayanan
+                idJenisLayanan: idJenisLayanan
             })
         });
 
         const result = await response.json();
+
         if (result.status === 200) {
             alert('Transaksi pembayaran berhasil dihapus');
             await loadPembayaranData(); // Reload tabel
